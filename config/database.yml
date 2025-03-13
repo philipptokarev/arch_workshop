@@ -7,8 +7,8 @@ default: &default
 postgre: &postgre
   host: <%= ENV.fetch('POSTGRES_HOST', 'localhost') %>
   port: <%= ENV.fetch('POSTGRES_PORT', '5432') %>
-  username: <%= ENV.fetch('POSTGRES_USER') { 'igorsimdyanov' } %>
-  password: <%= ENV.fetch('POSTGRES_PASSWORD') { '' } %>
+  username: <%= ENV.fetch('POSTGRES_USER') { 'postgres' } %>
+  password: <%= ENV.fetch('POSTGRES_PASSWORD') { 'postgres' } %>
 
 development:
   <<: *default
@@ -17,6 +17,7 @@ development:
 
 test:
   <<: *default
+  <<: *postgre
   database: library_test
 
 production:

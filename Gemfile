@@ -24,6 +24,9 @@ gem 'dry-types'
 # Конфигурирование приложения
 gem 'config'
 
+# Сериализация данных
+gem 'alba'
+
 # Система администрирования
 gem 'activeadmin'
 gem 'activeadmin_addons'

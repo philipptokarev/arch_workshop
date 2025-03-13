@@ -1,5 +1,6 @@
 class Book < ApplicationRecord
   include Ransackable
+  include Pagination
 
   has_many :books_authors, dependent: :destroy
   has_many :authors, through: :books_authors
