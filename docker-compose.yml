@@ -1,11 +1,4 @@
 services:
-  db:
-    image: postgres:17
-    environment:
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'postgres'
-    volumes:
-      - db:/var/lib/postgresql/data
   web:
     tty: true
     stdin_open: true
@@ -14,7 +7,7 @@ services:
     build:
       context: .
     env_file:
-      ".env"
+      - .env
     command: >
       sh -c "rm -f tmp/pids/server.pid &&
              bundle exec rails s -p 3000 -b '0.0.0.0'"
@@ -24,14 +17,87 @@ services:
     networks:
       - default
     ports:
-      - "8080:3000"
+      - 3000:3000
     depends_on:
       - db
+      - kafka-console # Если нужна SchemaRegistry, то включить `kafka-console-with-schema-registry`
     environment:
       RAILS_LOG_TO_STDOUT: 'yes'
       PAGER: 'more'
-      POSTGRES_HOST: 'db'
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'postgres'
+
+  db:
+    image: postgres:17
+    env_file:
+      - .env
+    networks:
+      - default
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    networks:
+      - default
+    env_file:
+      - .env
+    ports:
+      - 2181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    networks:
+      - default
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+      - 29092:29092
+    env_file:
+      - .env
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  kafka-console: &kafka-console
+    image: docker.redpanda.com/redpandadata/console
+    restart: on-failure
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: [$KAFKA_URL]
+    ports:
+      - 8080:8080
+    depends_on:
+      - kafka
+
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:5.1.2
+    restart: always
+    depends_on:
+      - zookeeper
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: $KAFKA_ZOOKEEPER_CONNECT
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+    ports:
+      - 8081:8081
+
+  kafka-console-with-schema-registry:
+    <<: *kafka-console
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: [$KAFKA_URL]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://schemaregistry:8081"]
+    depends_on:
+      - kafka
+      - schemaregistry
+
 volumes:
   db:
+  kafka-data:

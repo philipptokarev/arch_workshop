@@ -1,0 +1,2 @@
+class BookLike < ApplicationRecord
+end

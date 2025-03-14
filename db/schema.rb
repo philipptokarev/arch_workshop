@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_09_01_140126) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_14_001648) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -32,6 +32,14 @@ ActiveRecord::Schema[8.0].define(version: 2024_09_01_140126) do
     t.string "original", comment: "Автор в inpx-индексе"
     t.integer "books_count", default: 0, null: false, comment: "Количество книг"
     t.index ["first_name", "last_name", "middle_name", "original"], name: "idx_on_first_name_last_name_middle_name_original_8ed0e1cb00", unique: true
+  end
+
+  create_table "book_likes", comment: "Лайки книг", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "folder", comment: "Имя папки"
+    t.integer "book", comment: "Идентификатор книги в библиотеке"
+    t.integer "total", comment: "Количество лайков"
   end
 
   create_table "books", id: :uuid, default: -> { "gen_random_uuid()" }, comment: "Книги", force: :cascade do |t|

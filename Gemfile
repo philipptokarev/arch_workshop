@@ -29,6 +29,9 @@ gem 'activeadmin'
 gem 'activeadmin_addons'
 gem 'devise'
 
+# Queue broker
+gem 'karafka', '~> 2.0'
+
 group :development, :test do
   gem 'bundler-audit'
   gem 'capybara'
