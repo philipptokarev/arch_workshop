@@ -1,6 +1,6 @@
 class Book < ApplicationRecord
   include Ransackable
-  include Pagination
+  include Searchable
 
   has_many :books_authors, dependent: :destroy
   has_many :authors, through: :books_authors
@@ -24,4 +24,13 @@ class Book < ApplicationRecord
                      published_at updated_at created_at]
   RANSACK_ASSOCIATIONS = %w[authors books_authors books_genres books_keywords
                             folder genres keywords language]
+
+  scope :with_pagination, ->(page) do
+    # Если прописать все поля, как во всем связанных сериалайзерах,
+    # то можно ли будет `search(query).records` передавать в сериалайзер?
+    book_ids = paginate(page, sort: [{ published_at: { order: :desc } }]).pluck(:_id)
+    where(id: book_ids).includes(
+      :authors, :folder, :genres, :keywords, :language
+    ).order(published_at: :desc)
+  end
 end

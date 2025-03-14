@@ -5,6 +5,18 @@ services:
       .env
     volumes:
       - db:/var/lib/postgresql/data
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    ports:
+      - 9200:9200
+      - 9300:9300
+    env_file:
+      .env
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
   web:
     tty: true
     stdin_open: true
@@ -26,8 +38,10 @@ services:
       - "8080:3000"
     depends_on:
       - db
+      - elasticsearch
     environment:
       RAILS_LOG_TO_STDOUT: 'yes'
       PAGER: 'more'
 volumes:
   db:
+  elasticsearch:
