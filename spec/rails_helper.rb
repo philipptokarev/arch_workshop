@@ -64,4 +64,5 @@ RSpec.configure do |config|
   # config.include Devise::Test::ControllerHelpers, type: :request
   config.include LoaderHelpers
   config.include LoginHelpers, type: :feature
+  config.include ResponseHelper, type: :controller
 end
